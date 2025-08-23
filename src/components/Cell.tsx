@@ -27,7 +27,7 @@ const CellComponent: React.FC<CellProps> = ({
 
   const getCellContent = () => {
     if (cell.isFlagged) {
-      return "";
+      return "🚩";
     }
 
     if (!cell.isRevealed) {
@@ -69,22 +69,9 @@ const CellComponent: React.FC<CellProps> = ({
     return className;
   };
 
-  const getCellStyle = () => {
-    const style: React.CSSProperties = {};
-    
-    if (!cell.isRevealed && cell.hasCoin) {
-      style.backgroundImage = `url(${process.env.PUBLIC_URL}/coin.png)`;
-    } else if (cell.isFlagged) {
-      style.backgroundImage = `url(${process.env.PUBLIC_URL}/cross.png)`;
-    }
-    
-    return style;
-  };
-
   return (
     <div
       className={getCellClassName()}
-      style={getCellStyle()}
       onClick={handleClick}
       onContextMenu={handleRightClick}
       data-row={cell.row}
