@@ -3,9 +3,6 @@
   "outputDirectory": "build",
   "installCommand": "npm install --legacy-peer-deps",
   "framework": "create-react-app",
-  "env": {
-    "REACT_APP_PRIVY_APP_ID": "@react_app_privy_app_id"
-  },
   "rewrites": [
     {
       "source": "/(.*)",
@@ -14,11 +11,11 @@
   ],
   "headers": [
     {
-      "source": "/static/(.*)",
+      "source": "/(.*)",
       "headers": [
         {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
+          "key": "X-Frame-Options",
+          "value": "DENY"
         }
       ]
     }
