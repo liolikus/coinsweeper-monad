@@ -84,7 +84,6 @@ function App() {
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
-          logo: '/coin.png',
         },
         embeddedWallets: {
           createOnLogin: 'users-without-wallets',
