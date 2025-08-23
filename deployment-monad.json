@@ -1,0 +1,9 @@
+{
+  "network": "monadTestnet",
+  "chainId": 41454,
+  "contractAddress": "0x13724e430739f25c3116928388CF4f6099521d47",
+  "deployer": "0xe3a49d0C86fcbB4458E7B70b5D64496b553474F3",
+  "deploymentTime": "2025-08-23T16:12:15.353Z",
+  "contractBalance": "0.5",
+  "rewardPerWin": "0.01"
+}

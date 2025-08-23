@@ -42,14 +42,14 @@ async function main() {
   // Set initial configuration
   console.log("\nSetting initial configuration...");
   
-  // Set reward per win (100 MON in wei)
-  const rewardPerWin = ethers.parseEther("100");
+  // Set reward per win (0.01 MON in wei - much smaller reward)
+  const rewardPerWin = ethers.parseEther("0.01");
   const setRewardTx = await coinSweeper.setRewardPerWin(rewardPerWin);
   await setRewardTx.wait();
   console.log("Reward per win set to:", ethers.formatEther(rewardPerWin), "MON");
 
-  // Fund contract with initial rewards (1000 MON)
-  const fundAmount = ethers.parseEther("1000");
+  // Fund contract with initial rewards (0.5 MON - leave some for gas)
+  const fundAmount = ethers.parseEther("0.5");
   console.log("\nFunding contract with", ethers.formatEther(fundAmount), "MON...");
   
   const fundTx = await deployer.sendTransaction({

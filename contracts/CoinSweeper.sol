@@ -1,62 +1,63 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract CoinSweeper is Ownable, ReentrancyGuard {
-    // Game statistics
+    // Game statistics for each player
     struct GameStats {
         uint256 gamesPlayed;
         uint256 gamesWon;
         uint256 totalCoinsFound;
         uint256 bestTime;
-        uint256 totalRewards;
+        uint256 totalScore;
         uint256 pendingRewards;
     }
     
+    // Leaderboard entry
     struct LeaderboardEntry {
         address player;
         uint256 score;
         uint256 timestamp;
+        string username; // For Monad Games ID integration
     }
     
-    // Events
-    event GameStarted(address indexed player, uint256 difficulty);
-    event GameWon(address indexed player, uint256 difficulty, uint256 time, uint256 reward);
+    // Events for Monad Games ID integration
+    event GameStarted(address indexed player, uint256 difficulty, uint256 timestamp);
+    event GameWon(address indexed player, uint256 difficulty, uint256 time, uint256 coinsFound, uint256 score);
     event GameLost(address indexed player, uint256 difficulty);
+    event ScoreSubmitted(address indexed player, uint256 score, uint256 transactionCount, string username);
     event RewardClaimed(address indexed player, uint256 amount);
-    event ScoreSubmitted(address indexed player, uint256 score, uint256 transactionCount);
+    event GameRegistered(string gameName, address registrar);
     
     // State variables
     mapping(address => GameStats) public playerStats;
     mapping(uint256 => LeaderboardEntry) public leaderboard;
+    mapping(address => string) public playerUsernames; // Monad Games ID usernames
     uint256 public leaderboardCount;
+    uint256 public constant MAX_LEADERBOARD_SIZE = 100;
     
     // Reward configuration
-    uint256 public rewardPerWin = 100 ether; // Base reward amount in wei
-    uint256 public minTimeForBonus = 300; // 5 minutes for bonus
-    uint256 public bonusMultiplier = 2; // 2x bonus for fast wins
+    uint256 public rewardPerWin = 100 ether; // 100 MON tokens
+    uint256 public minTimeForBonus = 300; // 5 minutes for time bonus
+    uint256 public bonusMultiplier = 2; // 2x bonus for fast completion
     
-    // Difficulty multipliers
+    // Difficulty multipliers (1=Easy, 2=Medium, 3=Hard)
     mapping(uint256 => uint256) public difficultyMultipliers;
     
-    // Optional reward token (can be address(0) for ETH rewards)
-    IERC20 public rewardToken;
-    
-    // Game registration for Monad Games ID
+    // Monad Games ID registration
     bool public gameRegistered;
     string public gameName;
     address public gameRegistrar;
     
     constructor() Ownable(msg.sender) {
-        // Set difficulty multipliers (1 = Easy, 2 = Medium, 3 = Hard)
+        // Initialize difficulty multipliers
         difficultyMultipliers[1] = 1;   // Easy: 1x
-        difficultyMultipliers[2] = 2;   // Medium: 2x
+        difficultyMultipliers[2] = 2;   // Medium: 2x  
         difficultyMultipliers[3] = 4;   // Hard: 4x
         
-        // Initialize game registration
+        // Initialize game info
         gameName = "CoinSweeper";
         gameRegistered = false;
     }
@@ -66,6 +67,16 @@ contract CoinSweeper is Ownable, ReentrancyGuard {
         gameName = _gameName;
         gameRegistrar = _registrar;
         gameRegistered = true;
+        
+        emit GameRegistered(_gameName, _registrar);
+    }
+    
+    // Set player username from Monad Games ID
+    function setPlayerUsername(address player, string memory username) external {
+        require(gameRegistered, "Game not registered with Monad Games ID");
+        require(msg.sender == gameRegistrar || msg.sender == player, "Unauthorized");
+        
+        playerUsernames[player] = username;
     }
     
     // Start a new game
@@ -73,131 +84,89 @@ contract CoinSweeper is Ownable, ReentrancyGuard {
         require(difficulty >= 1 && difficulty <= 3, "Invalid difficulty");
         
         playerStats[msg.sender].gamesPlayed++;
-        emit GameStarted(msg.sender, difficulty);
+        
+        emit GameStarted(msg.sender, difficulty, block.timestamp);
     }
     
-    // Record a game win
-    function recordWin(uint256 difficulty, uint256 time, uint256 coinsFound) 
-        external 
-        nonReentrant 
-    {
+    // Record a game win with score calculation
+    function recordWin(
+        uint256 difficulty,
+        uint256 gameTime,
+        uint256 coinsFound
+    ) external nonReentrant {
         require(difficulty >= 1 && difficulty <= 3, "Invalid difficulty");
-        require(time > 0, "Invalid time");
+        require(gameTime > 0, "Invalid game time");
         
         GameStats storage stats = playerStats[msg.sender];
         stats.gamesWon++;
         stats.totalCoinsFound += coinsFound;
         
-        // Update best time if better
-        if (stats.bestTime == 0 || time < stats.bestTime) {
-            stats.bestTime = time;
+        // Update best time
+        if (stats.bestTime == 0 || gameTime < stats.bestTime) {
+            stats.bestTime = gameTime;
         }
         
-        // Calculate reward
-        uint256 baseReward = rewardPerWin * difficultyMultipliers[difficulty];
-        uint256 finalReward = baseReward;
+        // Calculate score based on difficulty, time, and coins found
+        uint256 baseScore = 1000 * difficultyMultipliers[difficulty];
+        uint256 timeBonus = gameTime <= minTimeForBonus ? baseScore * bonusMultiplier : baseScore;
+        uint256 coinBonus = coinsFound * 10 * difficultyMultipliers[difficulty];
+        uint256 finalScore = timeBonus + coinBonus;
         
-        // Bonus for fast completion
-        if (time <= minTimeForBonus) {
-            finalReward = baseReward * bonusMultiplier;
+        stats.totalScore += finalScore;
+        
+        // Calculate MON reward
+        uint256 reward = rewardPerWin * difficultyMultipliers[difficulty];
+        if (gameTime <= minTimeForBonus) {
+            reward *= bonusMultiplier;
         }
-        
-        // Add to pending rewards
-        stats.pendingRewards += finalReward;
-        stats.totalRewards += finalReward;
+        stats.pendingRewards += reward;
         
         // Update leaderboard
-        updateLeaderboard(msg.sender, finalReward);
+        updateLeaderboard(msg.sender, finalScore);
         
-        emit GameWon(msg.sender, difficulty, time, finalReward);
+        emit GameWon(msg.sender, difficulty, gameTime, coinsFound, finalScore);
     }
     
     // Record a game loss
     function recordLoss(uint256 difficulty) external {
         require(difficulty >= 1 && difficulty <= 3, "Invalid difficulty");
+        
         emit GameLost(msg.sender, difficulty);
     }
     
-    // Submit score and transaction count to Monad Games ID system
+    // Submit score to Monad Games ID leaderboard
     function submitScore(uint256 score, uint256 transactionCount) external {
         require(gameRegistered, "Game not registered with Monad Games ID");
+        
+        string memory username = playerUsernames[msg.sender];
+        if (bytes(username).length == 0) {
+            username = "Anonymous";
+        }
         
         // Update leaderboard with submitted score
         updateLeaderboard(msg.sender, score);
         
-        emit ScoreSubmitted(msg.sender, score, transactionCount);
+        emit ScoreSubmitted(msg.sender, score, transactionCount, username);
     }
     
-    // Claim pending rewards
-    function claimRewards() external nonReentrant {
-        GameStats storage stats = playerStats[msg.sender];
-        uint256 pending = stats.pendingRewards;
-        require(pending > 0, "No rewards to claim");
-        
-        stats.pendingRewards = 0;
-        
-        if (address(rewardToken) != address(0)) {
-            // Transfer ERC20 tokens
-            require(rewardToken.transfer(msg.sender, pending), "Token transfer failed");
-        } else {
-            // Transfer ETH
-            require(address(this).balance >= pending, "Insufficient contract balance");
-            payable(msg.sender).transfer(pending);
+    // Update leaderboard with new score
+    function updateLeaderboard(address player, uint256 score) internal {
+        string memory username = playerUsernames[player];
+        if (bytes(username).length == 0) {
+            username = "Anonymous";
         }
         
-        emit RewardClaimed(msg.sender, pending);
-    }
-    
-    // Get player stats
-    function getPlayerStats(address player) external view returns (
-        uint256 gamesPlayed,
-        uint256 gamesWon,
-        uint256 totalCoinsFound,
-        uint256 bestTime,
-        uint256 totalRewards
-    ) {
-        GameStats memory stats = playerStats[player];
-        return (
-            stats.gamesPlayed,
-            stats.gamesWon,
-            stats.totalCoinsFound,
-            stats.bestTime,
-            stats.totalRewards
-        );
-    }
-    
-    // Get player balance (pending rewards)
-    function getPlayerBalance(address player) external view returns (uint256) {
-        return playerStats[player].pendingRewards;
-    }
-    
-    // Get leaderboard entry
-    function getLeaderboardEntry(uint256 index) external view returns (
-        address player,
-        uint256 score,
-        uint256 timestamp
-    ) {
-        require(index < leaderboardCount, "Index out of bounds");
-        LeaderboardEntry memory entry = leaderboard[index];
-        return (
-            entry.player,
-            entry.score,
-            entry.timestamp
-        );
-    }
-    
-    // Update leaderboard
-    function updateLeaderboard(address player, uint256 score) internal {
-        // Simple leaderboard implementation - adds new entries up to limit
-        if (leaderboardCount < 100) {
+        if (leaderboardCount < MAX_LEADERBOARD_SIZE) {
+            // Add new entry
             leaderboard[leaderboardCount] = LeaderboardEntry({
                 player: player,
                 score: score,
-                timestamp: block.timestamp
+                timestamp: block.timestamp,
+                username: username
             });
             leaderboardCount++;
         } else {
-            // Replace lowest score if new score is higher
+            // Find lowest score and replace if new score is higher
             uint256 lowestIndex = 0;
             uint256 lowestScore = leaderboard[0].score;
             
@@ -212,17 +181,66 @@ contract CoinSweeper is Ownable, ReentrancyGuard {
                 leaderboard[lowestIndex] = LeaderboardEntry({
                     player: player,
                     score: score,
-                    timestamp: block.timestamp
+                    timestamp: block.timestamp,
+                    username: username
                 });
             }
         }
     }
     
-    // Owner functions
-    function setRewardToken(address _rewardToken) external onlyOwner {
-        rewardToken = IERC20(_rewardToken);
+    // Claim pending MON rewards
+    function claimRewards() external nonReentrant {
+        GameStats storage stats = playerStats[msg.sender];
+        uint256 pending = stats.pendingRewards;
+        require(pending > 0, "No rewards to claim");
+        
+        stats.pendingRewards = 0;
+        
+        // Transfer MON tokens (native currency on Monad)
+        require(address(this).balance >= pending, "Insufficient contract balance");
+        payable(msg.sender).transfer(pending);
+        
+        emit RewardClaimed(msg.sender, pending);
     }
     
+    // Get player statistics
+    function getPlayerStats(address player) external view returns (
+        uint256 gamesPlayed,
+        uint256 gamesWon,
+        uint256 totalCoinsFound,
+        uint256 bestTime,
+        uint256 totalScore,
+        uint256 pendingRewards
+    ) {
+        GameStats memory stats = playerStats[player];
+        return (
+            stats.gamesPlayed,
+            stats.gamesWon,
+            stats.totalCoinsFound,
+            stats.bestTime,
+            stats.totalScore,
+            stats.pendingRewards
+        );
+    }
+    
+    // Get leaderboard entry
+    function getLeaderboardEntry(uint256 index) external view returns (
+        address player,
+        uint256 score,
+        uint256 timestamp,
+        string memory username
+    ) {
+        require(index < leaderboardCount, "Index out of bounds");
+        LeaderboardEntry memory entry = leaderboard[index];
+        return (entry.player, entry.score, entry.timestamp, entry.username);
+    }
+    
+    // Get player username
+    function getPlayerUsername(address player) external view returns (string memory) {
+        return playerUsernames[player];
+    }
+    
+    // Owner functions for configuration
     function setRewardPerWin(uint256 _rewardPerWin) external onlyOwner {
         rewardPerWin = _rewardPerWin;
     }
@@ -247,19 +265,11 @@ contract CoinSweeper is Ownable, ReentrancyGuard {
         payable(owner()).transfer(balance);
     }
     
-    function emergencyWithdrawTokens(address token) external onlyOwner {
-        IERC20 tokenContract = IERC20(token);
-        uint256 balance = tokenContract.balanceOf(address(this));
-        require(balance > 0, "No token balance to withdraw");
-        require(tokenContract.transfer(owner(), balance), "Token transfer failed");
-    }
-    
-    // Fund contract with ETH for rewards
+    // Fund contract with MON for rewards
     receive() external payable {}
     
-    // Fund contract with tokens for rewards
-    function fundWithTokens(uint256 amount) external {
-        require(address(rewardToken) != address(0), "No reward token set");
-        require(rewardToken.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
+    // Get contract balance
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 }

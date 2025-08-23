@@ -102,7 +102,11 @@ export const NETWORKS = {
   monadTestnet: {
     chainId: 41454,
     name: "Monad Testnet",
-    rpcUrl: "https://testnet1.monad.xyz",
+    rpcUrls: [
+      "https://testnet-rpc.monad.xyz",
+      "https://testnet1.monad.xyz",
+    ],
+    rpcUrl: "https://testnet-rpc.monad.xyz", // Primary RPC
     explorer: "https://testnet1.monad.xyz",
     nativeCurrency: {
       name: "MON",
@@ -113,6 +117,11 @@ export const NETWORKS = {
   sepolia: {
     chainId: 11155111,
     name: "Sepolia Testnet", 
+    rpcUrls: [
+      "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
+      "https://eth-sepolia.public.blastapi.io",
+      "https://sepolia.gateway.tenderly.co",
+    ],
     rpcUrl: "https://sepolia.infura.io/v3/YOUR_PROJECT_ID",
     explorer: "https://sepolia.etherscan.io",
     nativeCurrency: {

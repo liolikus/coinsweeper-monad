@@ -1,4 +1,4 @@
-require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-ethers");
 require("dotenv/config");
 
 const config = {
@@ -23,9 +23,9 @@ const config = {
       url: "http://127.0.0.1:8545",
     },
     monadTestnet: {
-      url: process.env.MONAD_TESTNET_RPC_URL || "https://testnet1.monad.xyz",
+      url: process.env.MONAD_TESTNET_RPC_URL || "https://testnet-rpc.monad.xyz",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 41454,
+      chainId: 10143,
       gasPrice: "auto",
     },
     sepolia: {
@@ -42,7 +42,7 @@ const config = {
     customChains: [
       {
         network: "monadTestnet",
-        chainId: 41454,
+        chainId: 10143,
         urls: {
           apiURL: "https://testnet1.monad.xyz/api",
           browserURL: "https://testnet1.monad.xyz"
