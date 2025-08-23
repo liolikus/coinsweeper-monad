@@ -108,7 +108,7 @@
 .cell.flagged {
   background: linear-gradient(145deg, #f9ec34, #f9e905);
   border: 2px solid #333;
-  background-image: url('../cross.png');
+  background-image: url('/cross.png');
   background-size: 70% 70%;
   background-position: center;
   background-repeat: no-repeat;
