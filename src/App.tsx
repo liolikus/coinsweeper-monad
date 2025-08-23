@@ -13,7 +13,7 @@ import { PrivyWeb3Provider } from './contexts/PrivyWeb3Context';
 
 // Define Monad Testnet chain
 const monadTestnet = {
-  id: 41454,
+  id: 10143,
   name: 'Monad Testnet',
   nativeCurrency: {
     decimals: 18,

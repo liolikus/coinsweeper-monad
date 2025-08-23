@@ -100,14 +100,12 @@ export const ERC20_ABI = [
 // Network configurations
 export const NETWORKS = {
   monadTestnet: {
-    chainId: 41454,
+    chainId: 10143,
     name: "Monad Testnet",
     rpcUrls: [
       "https://testnet-rpc.monad.xyz",
-      "https://testnet1.monad.xyz",
     ],
     rpcUrl: "https://testnet-rpc.monad.xyz", // Primary RPC
-    explorer: "https://testnet1.monad.xyz",
     nativeCurrency: {
       name: "MON",
       symbol: "MON",
@@ -142,5 +140,5 @@ export const CONTRACT_ADDRESSES = {
 export const MONAD_GAMES_CONFIG = {
   leaderboardUrl: "https://monad-games-id-site.vercel.app/leaderboard",
   registrationRequired: true,
-  supportedNetworks: [41454], // Monad Testnet
+  supportedNetworks: [10143], // Monad Testnet
 };
