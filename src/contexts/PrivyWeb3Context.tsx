@@ -28,6 +28,12 @@ import {
   isMonadGamesIDSupported,
 } from "../utils/web3Utils";
 
+// Extended state interface
+interface ExtendedWeb3State extends Web3GameState {
+  monadUser: MonadGamesUser | null;
+  transaction: TransactionState;
+}
+
 // Action types
 type Web3Action =
   | { type: "SET_WALLET"; payload: WalletState }
@@ -40,7 +46,7 @@ type Web3Action =
   | { type: "CLEAR_ERROR" };
 
 // Initial state
-const initialState: Web3GameState & { monadUser: MonadGamesUser | null, transaction: TransactionState } = {
+const initialState: ExtendedWeb3State = {
   wallet: {
     isConnected: false,
     address: null,
@@ -63,9 +69,9 @@ const initialState: Web3GameState & { monadUser: MonadGamesUser | null, transact
 
 // Reducer
 const web3Reducer = (
-  state: typeof initialState,
-  action: Web3Action,
-): typeof initialState => {
+  state: ExtendedWeb3State,
+  action: Web3Action
+): ExtendedWeb3State => {
   switch (action.type) {
     case "SET_WALLET":
       return { ...state, wallet: action.payload };
@@ -88,8 +94,8 @@ const web3Reducer = (
   }
 };
 
-// Context
-interface PrivyWeb3ContextType extends typeof initialState {
+// Context interface
+interface PrivyWeb3ContextType extends ExtendedWeb3State {
   // Connection methods
   connect: () => Promise<void>;
   disconnect: () => void;
@@ -140,7 +146,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
     return {
       username: userData.username || userData.subject || null,
       walletAddress: state.wallet.address || null,
-      isRegistered: !!userData.username, // User is registered if they have a username
+      isRegistered: Boolean(userData.username),
       crossAppId: userData.subject || null,
       providerAppId: 'cmd8euall0037le0my79qpz42'
     };
@@ -148,7 +154,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
 
   // Update wallet state when Privy state changes
   useEffect(() => {
-    const updateWalletState = async () => {
+    const updateWalletState = async (): Promise<void> => {
       if (!authenticated || wallets.length === 0) {
         dispatch({
           type: "SET_WALLET",
@@ -202,7 +208,8 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
         }
       } catch (error) {
         console.error("Error updating wallet state:", error);
-        dispatch({ type: "SET_ERROR", payload: "Failed to connect wallet" });
+        const errorMessage = error instanceof Error ? error.message : "Failed to connect wallet";
+        dispatch({ type: "SET_ERROR", payload: errorMessage });
       }
     };
 
@@ -210,7 +217,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   }, [authenticated, wallets, getMonadGamesUser]);
 
   // Connect wallet using Privy
-  const connect = async () => {
+  const connect = async (): Promise<void> => {
     try {
       dispatch({ type: "SET_LOADING", payload: true });
       dispatch({ type: "CLEAR_ERROR" });
@@ -256,14 +263,15 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
         await refreshLeaderboard();
       }
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Connection failed";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
   // Disconnect wallet
-  const disconnect = async () => {
+  const disconnect = async (): Promise<void> => {
     await logout();
     dispatch({ type: "SET_WALLET", payload: {
       isConnected: false,
@@ -279,7 +287,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Switch to Monad Testnet
-  const switchToMonadTestnet = async () => {
+  const switchToMonadTestnet = async (): Promise<void> => {
     const wallet = wallets.find((w) => w.walletClientType === "privy");
     if (!wallet) {
       throw new Error("No wallet connected");
@@ -290,22 +298,24 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
       // Reconnect after chain switch
       await connect();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: `Failed to switch to Monad Testnet: ${error.message}` });
+      const errorMessage = error instanceof Error ? error.message : "Failed to switch network";
+      dispatch({ type: "SET_ERROR", payload: `Failed to switch to Monad Testnet: ${errorMessage}` });
     }
   };
 
   // Refresh player stats
-  const refreshStats = async () => {
+  const refreshStats = async (): Promise<void> => {
     if (
       !state.wallet.isConnected ||
       !state.wallet.signer ||
-      !state.wallet.address
+      !state.wallet.address ||
+      !state.wallet.chainId
     ) {
       return;
     }
 
     try {
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
       const stats = await getPlayerStats(
         state.wallet.signer,
         contractConfig.address,
@@ -325,13 +335,13 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Refresh leaderboard
-  const refreshLeaderboard = async () => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  const refreshLeaderboard = async (): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       return;
     }
 
     try {
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
       const leaderboard = await getLeaderboard(
         state.wallet.signer,
         contractConfig.address,
@@ -344,14 +354,14 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Game functions with the same signatures as before
-  const startGame = async (difficulty: number) => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  const startGame = async (difficulty: number): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       throw new Error("Wallet not connected");
     }
 
     try {
       dispatch({ type: "SET_LOADING", payload: true });
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
       
       await startGameOnChain(
         state.wallet.signer,
@@ -361,7 +371,8 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
 
       await refreshStats();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Failed to start game";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
@@ -372,14 +383,14 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
     difficulty: number,
     time: number,
     coinsFound: number,
-  ) => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  ): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       throw new Error("Wallet not connected");
     }
 
     try {
       dispatch({ type: "SET_LOADING", payload: true });
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
 
       await recordWinOnChain(
         state.wallet.signer,
@@ -392,21 +403,22 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
       await refreshStats();
       await refreshLeaderboard();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Failed to record win";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
-  const recordLoss = async (difficulty: number) => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  const recordLoss = async (difficulty: number): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       throw new Error("Wallet not connected");
     }
 
     try {
       dispatch({ type: "SET_LOADING", payload: true });
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
 
       await recordLossOnChain(
         state.wallet.signer,
@@ -416,7 +428,8 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
 
       await refreshStats();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Failed to record loss";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
@@ -424,18 +437,18 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Submit score to Monad Games ID
-  const submitScore = async (score: number, transactionCount: number) => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  const submitScore = async (score: number, transactionCount: number): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       throw new Error("Wallet not connected");
     }
 
-    if (!isMonadGamesIDSupported(state.wallet.chainId!)) {
+    if (!isMonadGamesIDSupported(state.wallet.chainId)) {
       throw new Error("Monad Games ID not supported on this network");
     }
 
     try {
       dispatch({ type: "SET_LOADING", payload: true });
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
 
       await submitScoreOnChain(
         state.wallet.signer,
@@ -446,27 +459,29 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
 
       await refreshLeaderboard();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit score";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
     }
   };
 
-  const claimPlayerRewards = async () => {
-    if (!state.wallet.isConnected || !state.wallet.signer) {
+  const claimPlayerRewards = async (): Promise<void> => {
+    if (!state.wallet.isConnected || !state.wallet.signer || !state.wallet.chainId) {
       throw new Error("Wallet not connected");
     }
 
     try {
       dispatch({ type: "SET_LOADING", payload: true });
-      const contractConfig = getContractConfig(state.wallet.chainId!);
+      const contractConfig = getContractConfig(state.wallet.chainId);
 
       await claimRewards(state.wallet.signer, contractConfig.address);
 
       await refreshStats();
     } catch (error) {
-      dispatch({ type: "SET_ERROR", payload: error.message });
+      const errorMessage = error instanceof Error ? error.message : "Failed to claim rewards";
+      dispatch({ type: "SET_ERROR", payload: errorMessage });
       throw error;
     } finally {
       dispatch({ type: "SET_LOADING", payload: false });
@@ -474,7 +489,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
   };
 
   // Clear error
-  const clearError = () => {
+  const clearError = (): void => {
     dispatch({ type: "CLEAR_ERROR" });
   };
 
@@ -483,7 +498,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
     if (ready && authenticated && !state.wallet.isConnected) {
       connect();
     }
-  }, [ready, authenticated]);
+  }, [ready, authenticated, state.wallet.isConnected]);
 
   const contextValue: PrivyWeb3ContextType = {
     ...state,
@@ -512,7 +527,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
 };
 
 // Hook to use Privy Web3 context
-export const usePrivyWeb3 = () => {
+export const usePrivyWeb3 = (): PrivyWeb3ContextType => {
   const context = useContext(PrivyWeb3Context);
   if (context === undefined) {
     throw new Error("usePrivyWeb3 must be used within a PrivyWeb3Provider");
