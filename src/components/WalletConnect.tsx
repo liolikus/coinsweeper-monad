@@ -9,7 +9,7 @@ const WalletConnect: React.FC = () => {
     isConnected, 
     address, 
     chainId, 
-    monadGamesUser, 
+    monadUser, 
     switchToMonadTestnet,
     isCorrectNetwork 
   } = usePrivyWeb3();
@@ -99,10 +99,10 @@ const WalletConnect: React.FC = () => {
         
         {/* User Info */}
         <div className="user-info">
-          {monadGamesUser?.username ? (
+          {monadUser?.username ? (
             <div className="username">
               <span className="label">Username:</span>
-              <span className="value">{monadGamesUser.username}</span>
+              <span className="value">{monadUser.username}</span>
             </div>
           ) : (
             <div className="username">
@@ -154,16 +154,16 @@ const WalletConnect: React.FC = () => {
         </div>
 
         {/* Registration Status */}
-        {monadGamesUser && (
+        {monadUser && (
           <div className="registration-info">
             <div className="registration-status">
               <span className="label">Game Registration:</span>
-              <span className={`status ${monadGamesUser.isRegistered ? 'registered' : 'unregistered'}`}>
-                {monadGamesUser.isRegistered ? '✅ Registered' : '⏳ Pending'}
+              <span className={`status ${monadUser.isRegistered ? 'registered' : 'unregistered'}`}>
+                {monadUser.isRegistered ? '✅ Registered' : '⏳ Pending'}
               </span>
             </div>
             
-            {monadGamesUser.isRegistered && (
+            {monadUser.isRegistered && (
               <div className="leaderboard-link">
                 <a 
                   href="https://monad-games-id-site.vercel.app/leaderboard"

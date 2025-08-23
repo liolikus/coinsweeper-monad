@@ -117,6 +117,7 @@ interface PrivyWeb3ContextType extends ExtendedWeb3State {
   isCorrectNetwork: boolean;
   address: string | null;
   chainId: number | null;
+  monadUser: MonadGamesUser | null;
   clearError: () => void;
 }
 
@@ -519,6 +520,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
     isCorrectNetwork: state.wallet.chainId === 41454,
     address: state.wallet.address,
     chainId: state.wallet.chainId,
+    monadUser: state.monadUser,
   };
 
   return (
