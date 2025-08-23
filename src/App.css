@@ -1,0 +1,235 @@
+.App {
+  min-height: 100vh;
+  background: #000000;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  width: 100%;
+  overflow-x: hidden;
+  color: #333333;
+}
+
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  overflow-x: hidden;
+  background: #000000;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: #333333;
+}
+
+.header h1 {
+  font-size: 3em;
+  font-weight: 800;
+  text-shadow: 0 0 20px rgba(249, 233, 5, 0.8), 0 0 40px rgba(249, 233, 5, 0.6), 0 0 60px rgba(249, 233, 5, 0.4);
+  color: #f9e905;
+  letter-spacing: 2px;
+}
+
+.header p {
+  font-size: 1.3em;
+  margin: 0;
+  opacity: 0.8;
+  color: #c5b915;
+  font-weight: 300;
+}
+
+.main-content {
+  display: grid !important;
+  grid-template-columns: 1fr 1.4fr 1fr !important;
+  gap: 30px;
+  align-items: start;
+  min-height: 400px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.sidebar-left {
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  min-height: 200px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: #333333;
+}
+
+.sidebar-right {
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  min-height: 200px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: #333333;
+}
+
+.game-area {
+  border-radius: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  min-height: 200px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  color: #333333;
+}
+
+.section-title {
+  font-size: 1.5em;
+  margin: 0 0 20px 0;
+  color: #333333;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  background: #f9ec34;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e1e5e9;
+  color: #333333;
+}
+
+.card:last-child {
+  margin-bottom: 0;
+}
+
+.btn {
+  background: #333333;
+  color: #f9ec34;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn:hover {
+  background: #555555;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #666666;
+  color: #f9ec34;
+}
+
+.btn-secondary:hover {
+  background: #777777;
+  transform: translateY(-2px);
+}
+
+.btn-success {
+  background: #28a745;
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background: #20c997;
+  transform: translateY(-2px);
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #e74c3c;
+  transform: translateY(-2px);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: #666666;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
+.mt-20 {
+  margin-top: 20px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px;
+}
+
+.spinner {
+  border: 4px solid #e1e5e9;
+  border-top: 4px solid #333333;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
+  }
+  
+  .header h1 {
+    font-size: 2.2em;
+    letter-spacing: 1px;
+  }
+  
+  .header p {
+    font-size: 1.1em;
+  }
+  
+  .main-content {
+    gap: 15px;
+  }
+  
+  .game-area {
+    padding: 20px;
+  }
+  
+  .sidebar-left,
+  .sidebar-right {
+    padding: 20px;
+  }
+}
