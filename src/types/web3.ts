@@ -134,7 +134,7 @@ export const NETWORKS = {
 
 // Contract addresses
 export const CONTRACT_ADDRESSES = {
-  monadTestnet: "0x0000000000000000000000000000000000000000", // To be deployed
+  monadTestnet: "0x13724e430739f25c3116928388CF4f6099521d47", // Deployed on Monad Testnet
   sepolia: "0xB45D181c2F51700a489754993D9E2A0F6032504F", // Existing deployment
 };
 

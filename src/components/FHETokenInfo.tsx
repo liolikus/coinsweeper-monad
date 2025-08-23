@@ -109,12 +109,12 @@ const MonadGamesInfo: React.FC = () => {
           <div className="reward-info">
             <div className="reward-item">
               <span className="label">Reward per Win:</span>
-              <span className="value">100 MON</span>
+              <span className="value">0.01 MON</span>
             </div>
             <div className="reward-item">
               <span className="label">Total Earned:</span>
               <span className="value">
-                {gameStats ? `${gameStats.gamesWon * 100} MON` : '0 MON'}
+                {gameStats ? `${(gameStats.gamesWon * 0.01).toFixed(2)} MON` : '0 MON'}
               </span>
             </div>
           </div>
