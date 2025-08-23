@@ -1,7 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "build",
+  "installCommand": "npm install --legacy-peer-deps",
   "framework": "create-react-app",
+  "env": {
+    "REACT_APP_PRIVY_APP_ID": "@react_app_privy_app_id"
+  },
   "rewrites": [
     {
       "source": "/(.*)",
@@ -19,4 +23,4 @@
       ]
     }
   ]
-} 
+}
