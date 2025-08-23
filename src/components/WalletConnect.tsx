@@ -16,7 +16,7 @@ const WalletConnect: React.FC = () => {
 
   const handleSignInWithMonadGamesID = () => {
     login({
-      loginMethods: ['cross_app']
+      loginMethods: ['wallet', 'email']
     });
   };
 
