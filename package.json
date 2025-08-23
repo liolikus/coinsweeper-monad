@@ -10,7 +10,7 @@
   "homepage": ".",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/liolikus/coinsweeper.git"
+    "url": "git+https://github.com/liolikus/coinsweeper-monad.git"
   },
   "keywords": [
     "monad",

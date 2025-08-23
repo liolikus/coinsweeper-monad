@@ -40,7 +40,7 @@ type Web3Action =
   | { type: "CLEAR_ERROR" };
 
 // Initial state
-const initialState: Web3GameState & { monadUser: MonadGamesUser | null } = {
+const initialState: Web3GameState & { monadUser: MonadGamesUser | null, transaction: TransactionState } = {
   wallet: {
     isConnected: false,
     address: null,
@@ -54,6 +54,11 @@ const initialState: Web3GameState & { monadUser: MonadGamesUser | null } = {
   isLoading: false,
   error: null,
   monadUser: null,
+  transaction: {
+    isPending: false,
+    hash: null,
+    error: null,
+  },
 };
 
 // Reducer
@@ -72,6 +77,8 @@ const web3Reducer = (
       return { ...state, isLoading: action.payload };
     case "SET_ERROR":
       return { ...state, error: action.payload };
+    case "SET_TRANSACTION":
+      return { ...state, transaction: action.payload };
     case "SET_MONAD_USER":
       return { ...state, monadUser: action.payload };
     case "CLEAR_ERROR":

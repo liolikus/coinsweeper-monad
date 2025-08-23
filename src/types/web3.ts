@@ -46,9 +46,11 @@ export interface TransactionState {
 
 // Monad Games ID interfaces
 export interface MonadGamesUser {
-  address: string;
-  username: string;
+  username: string | null;
+  walletAddress: string | null;
   isRegistered: boolean;
+  crossAppId: string | null;
+  providerAppId: string;
 }
 
 export interface TokenInfo {
