@@ -83,31 +83,34 @@ const web3Reducer = (
 
 // Context
 interface PrivyWeb3ContextType extends typeof initialState {
+  // Connection methods
   connect: () => Promise<void>;
   disconnect: () => void;
-  refreshStats: () => Promise<void>;
-  refreshLeaderboard: () => Promise<void>;
+  switchToMonadTestnet: () => Promise<void>;
+  
+  // Game methods
   startGameOnChain: (difficulty: number) => Promise<void>;
-  recordWinOnChain: (
-    difficulty: number,
-    time: number,
-    coinsFound: number,
-  ) => Promise<void>;
+  recordWinOnChain: (difficulty: number, time: number, coinsFound: number) => Promise<void>;
   recordLossOnChain: (difficulty: number) => Promise<void>;
   submitScore: (score: number, transactionCount: number) => Promise<void>;
   claimRewards: () => Promise<void>;
+  
+  // Data methods
+  refreshStats: () => Promise<void>;
+  refreshLeaderboard: () => Promise<void>;
+  
+  // Computed properties
+  isConnected: boolean;
+  isCorrectNetwork: boolean;
+  address: string | null;
+  chainId: number | null;
   clearError: () => void;
-  switchToMonadTestnet: () => Promise<void>;
 }
 
 const PrivyWeb3Context = createContext<PrivyWeb3ContextType | undefined>(undefined);
 
 // Provider component
-interface PrivyWeb3ProviderProps {
-  children: ReactNode;
-}
-
-export const PrivyWeb3Provider: React.FC<PrivyWeb3ProviderProps> = ({ children }) => {
+export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(web3Reducer, initialState);
   const { ready, authenticated, user, login, logout } = usePrivy();
   const { wallets } = useWallets();
@@ -488,6 +491,10 @@ export const PrivyWeb3Provider: React.FC<PrivyWeb3ProviderProps> = ({ children }
     claimRewards: claimPlayerRewards,
     clearError,
     switchToMonadTestnet,
+    isConnected: state.wallet.isConnected,
+    isCorrectNetwork: state.wallet.chainId === 41454,
+    address: state.wallet.address,
+    chainId: state.wallet.chainId,
   };
 
   return (
