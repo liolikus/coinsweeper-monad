@@ -1,10 +1,10 @@
 import React from "react";
-import { useWeb3 } from "../contexts/Web3Context";
+import { usePrivyWeb3 } from "../contexts/PrivyWeb3Context";
 import { formatAddress, formatTimestamp } from "../utils/web3Utils";
 import "./BlockchainStats.css";
 
 const BlockchainStats: React.FC = () => {
-  const { wallet, gameStats, leaderboard, isLoading, claimRewards } = useWeb3();
+  const { wallet, gameStats, leaderboard, isLoading, claimRewards } = usePrivyWeb3();
 
   const handleClaimRewards = async () => {
     try {

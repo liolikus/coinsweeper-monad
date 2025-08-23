@@ -20,7 +20,7 @@
 .cell.hidden {
   background: linear-gradient(145deg, #f9ec34, #f9e905);
   border: 2px solid #333;
-  background-image: url('../coin.png');
+  background-image: url('/coin.png');
   background-size: 80% 80%;
   background-position: center;
   background-repeat: no-repeat;
