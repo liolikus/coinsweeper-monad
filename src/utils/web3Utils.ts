@@ -1,5 +1,4 @@
 import { ethers } from "ethers";
-import detectEthereumProvider from "@metamask/detect-provider";
 import {
   WalletState,
   GameStats,
@@ -11,58 +10,6 @@ import {
   MONAD_GAMES_CONFIG,
   TokenInfo,
 } from "../types/web3";
-
-// MetaMask provider detection
-export const detectProvider = async () => {
-  const provider = await detectEthereumProvider();
-  if (!provider) {
-    throw new Error("MetaMask not found! Please install MetaMask extension.");
-  }
-  return provider as any;
-};
-
-// Connect wallet
-export const connectWallet = async (): Promise<WalletState> => {
-  try {
-    const provider = await detectProvider();
-
-    // Request account access
-    await (provider as any).request({ method: "eth_requestAccounts" });
-
-    // Create ethers provider and signer
-    const ethersProvider = new ethers.BrowserProvider(provider as any);
-    const signer = await ethersProvider.getSigner();
-
-    // Get account details
-    const address = await signer.getAddress();
-    const balance = await ethersProvider.getBalance(address);
-    const network = await ethersProvider.getNetwork();
-
-    return {
-      isConnected: true,
-      address,
-      balance: ethers.formatEther(balance),
-      chainId: Number(network.chainId),
-      provider: ethersProvider,
-      signer,
-    };
-  } catch (error) {
-    console.error("Error connecting wallet:", error);
-    throw error;
-  }
-};
-
-// Disconnect wallet
-export const disconnectWallet = (): WalletState => {
-  return {
-    isConnected: false,
-    address: null,
-    balance: null,
-    chainId: null,
-    provider: null,
-    signer: null,
-  };
-};
 
 // Get contract instance
 export const getContract = (
@@ -87,41 +34,6 @@ export const getERC20Contract = (
   contractAddress: string,
 ) => {
   return getContract(signer, contractAddress, ERC20_ABI);
-};
-
-// Switch network
-export const switchNetwork = async (chainId: number) => {
-  const provider = await detectProvider();
-
-  try {
-    await (provider as any).request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: `0x${chainId.toString(16)}` }],
-    });
-  } catch (switchError: any) {
-    // This error code indicates that the chain has not been added to MetaMask
-    if (switchError.code === 4902) {
-      const network = Object.values(NETWORKS).find(
-        (n) => n.chainId === chainId,
-      );
-      if (network) {
-        await (provider as any).request({
-          method: "wallet_addEthereumChain",
-          params: [
-            {
-              chainId: `0x${chainId.toString(16)}`,
-              chainName: network.name,
-              nativeCurrency: network.nativeCurrency,
-              rpcUrls: [network.rpcUrl],
-              blockExplorerUrls: network.explorer ? [network.explorer] : [],
-            },
-          ],
-        });
-      }
-    } else {
-      throw switchError;
-    }
-  }
 };
 
 // Get player stats from contract
@@ -293,33 +205,6 @@ export const formatAddress = (address: string): string => {
 // Format timestamp for display
 export const formatTimestamp = (timestamp: number): string => {
   return new Date(timestamp * 1000).toLocaleString();
-};
-
-// Setup wallet event listeners
-export const setupWalletListeners = (
-  provider: any,
-  onAccountsChanged: (accounts: string[]) => void,
-  onChainChanged: (chainId: string) => void,
-) => {
-  // Check if the provider supports these events
-  if (provider && provider.on && typeof provider.on === "function") {
-    // Listen to the MetaMask provider directly
-    provider.on("accountsChanged", onAccountsChanged);
-    provider.on("chainChanged", onChainChanged);
-
-    return () => {
-      if (
-        provider.removeListener &&
-        typeof provider.removeListener === "function"
-      ) {
-        provider.removeListener("accountsChanged", onAccountsChanged);
-        provider.removeListener("chainChanged", onChainChanged);
-      }
-    };
-  }
-
-  // Fallback: return empty cleanup function
-  return () => {};
 };
 
 // Monad Games ID specific functions

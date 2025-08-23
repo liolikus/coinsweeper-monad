@@ -15,6 +15,7 @@ export interface GameStats {
   totalCoinsFound: number;
   bestTime: number;
   totalRewards: string;
+  pendingBalance: string;
   username?: string; // Monad Games ID username
 }
 
