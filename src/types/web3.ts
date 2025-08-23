@@ -6,7 +6,7 @@ export interface WalletState {
   balance: string | null;
   chainId: number | null;
   provider: ethers.BrowserProvider | null;
-  signer: ethers.Signer | null;
+  signer: ethers.JsonRpcSigner | null;
 }
 
 export interface GameStats {

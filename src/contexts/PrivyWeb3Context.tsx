@@ -178,8 +178,9 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
         }
 
         // Get provider and signer
-        const provider = await wallet.getEthersProvider();
-        const signer = provider.getSigner();
+        const privyProvider = await wallet.getEthereumProvider();
+        const provider = new ethers.BrowserProvider(privyProvider);
+        const signer = await provider.getSigner();
         
         // Get account details
         const address = await signer.getAddress();
@@ -189,7 +190,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
         const walletState: WalletState = {
           isConnected: true,
           address,
-          balance: ethers.formatEther(balance),
+          balance: ethers.formatEther(balance.toString()),
           chainId: Number(network.chainId),
           provider,
           signer,
@@ -234,8 +235,9 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
       }
 
       // Get provider and signer
-      const provider = await wallet.getEthersProvider();
-      const signer = provider.getSigner();
+      const privyProvider = await wallet.getEthereumProvider();
+      const provider = new ethers.BrowserProvider(privyProvider);
+      const signer = await provider.getSigner();
       
       // Get account details
       const address = await signer.getAddress();
@@ -245,7 +247,7 @@ export const PrivyWeb3Provider: React.FC<{ children: ReactNode }> = ({ children 
       const walletState: WalletState = {
         isConnected: true,
         address,
-        balance: ethers.formatEther(balance),
+        balance: ethers.formatEther(balance.toString()),
         chainId: Number(network.chainId),
         provider,
         signer,
