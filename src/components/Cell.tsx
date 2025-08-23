@@ -2,10 +2,6 @@ import React from "react";
 import { Cell as CellType } from "../types/game";
 import "./Cell.css";
 
-// Import images from public directory
-const coinImage = "/coin.png";
-const crossImage = "/cross.png";
-
 interface CellProps {
   cell: CellType;
   gameOver: boolean;
@@ -77,9 +73,9 @@ const CellComponent: React.FC<CellProps> = ({
     const style: React.CSSProperties = {};
     
     if (!cell.isRevealed && cell.hasCoin) {
-      style.backgroundImage = `url(${coinImage})`;
+      style.backgroundImage = `url(${process.env.PUBLIC_URL}/coin.png)`;
     } else if (cell.isFlagged) {
-      style.backgroundImage = `url(${crossImage})`;
+      style.backgroundImage = `url(${process.env.PUBLIC_URL}/cross.png)`;
     }
     
     return style;
