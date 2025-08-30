@@ -29,7 +29,8 @@ connect privy wallet
 
 tap New Game
 
-<img width="596" height="635" alt="image" src="https://github.com/user-attachments/assets/a02438ac-9bdd-41be-8a60-4a868a9d908a" />
+<img width="677" height="652" alt="image" src="https://github.com/user-attachments/assets/dbc3c378-b9e1-48ef-b6a1-12f30a6d6238" />
+
 
 Have fun
 
