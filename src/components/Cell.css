@@ -105,14 +105,21 @@
 }
 
 .cell.flagged {
-  background: linear-gradient(145deg, #f9ec34, #f9e905);
-  border: 2px solid #333;
-  background-size: 70% 70%;
-  background-position: center;
-  background-repeat: no-repeat;
-  animation: crossShimmer 1.5s ease-in-out infinite;
-  color: transparent;
+  background: linear-gradient(145deg, #ffd700, #ffed4e);
+  color: #d63031;
   font-size: 16px;
+  animation: flagPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes flagPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.6);
+  }
 }
 
 .cell.flagged:hover {

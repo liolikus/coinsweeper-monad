@@ -153,12 +153,6 @@ const CoinsweeperGame: React.FC = () => {
 
   return (
     <div className="coinsweeper-game">
-      {web3Error && (
-        <div className="web3-error">
-          <span>⚠️ {web3Error}</span>
-        </div>
-      )}
-
       {!isCorrectNetwork && isConnected && (
         <div className="network-warning">
           <span>⚠️ Please switch to Monad Testnet to play and earn rewards</span>
